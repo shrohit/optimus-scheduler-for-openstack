@@ -307,13 +307,13 @@ class HostManager(object):
     def get_filtered_hosts(self, hosts, filter_properties,
             filter_class_names=None):
         """Filter hosts and return only ones passing all filters."""
-	logger.debug('hosts: ' + str(hosts)	+ 	\
-		     '\nfilter_properties: '	+ 	\
-		     str(filter_properties) + '\n')
-	logger.debug('self.filter_handler: ' 	+ 	\
-		     str(self.filter_handler) 	+ 	\
-		     '\nself.weight_handler: ' 	+	\
-		     str(self.weight_handler))
+        logger.debug('hosts: ' + str(hosts)     +       \
+                     '\nfilter_properties: '    +       \
+                     str(filter_properties) + '\n')
+        logger.debug('self.filter_handler: '    +       \
+                     str(self.filter_handler)   +       \
+                     '\nself.weight_handler: '  +       \
+                     str(self.weight_handler))
 
         def _strip_ignore_hosts(host_map, hosts_to_ignore):
             ignored_hosts = []
@@ -344,54 +344,54 @@ class HostManager(object):
         ignore_hosts = filter_properties.get('ignore_hosts', [])
         force_hosts = filter_properties.get('force_hosts', [])
 
-	# Modifications-Rohit: Start
+        # Modifications-Rohit: Start
 
-	from nova import servicegroup
-	import itertools
-	import socket
-	import json
+        from nova import servicegroup
+        import itertools
+        import socket
+        import json
 
-	# Check maximum available(total) Memory(ram) and CPUs(vcpus) in 
-	# cluster of heterogenous hosts. 
-	srv = servicegroup.API()
-	hosts, find_max_in_hosts, no_category_hosts = itertools.tee(hosts, 3)
-	logger.debug('Filter Classes: ' + str(filter_classes) )
-	max_ram = {'count':0}
-	max_vcpus = {'count':0}
-	for host in find_max_in_hosts:
-		service = host.service
-		alive = srv.service_is_up(service)
-		# jump to next host if host not alive or service is disabled
-		if service['disabled'] or not alive:
-			logger.debug('Host: %s \t Status: Not up' % host.nodename)
-			continue
-		else:
-			logger.debug('Host: %s \t Status: Up ' % host.nodename)
-		if host.vcpus_total > max_vcpus['count']:
-			max_vcpus['count'] = float(host.vcpus_total)
-			max_vcpus['nodename'] = host.nodename
-		if host.total_usable_ram_mb > max_ram['count']:
-			max_ram['count'] = float(host.total_usable_ram_mb)
-			max_ram['nodename'] = host.nodename
-	logger.debug('Maximum available Ram in Cluster (%s): %d' % (max_ram['nodename'], max_ram['count']))
-	logger.debug('Maximum available VCPUs in Cluster (%s): %d' % (max_vcpus['nodename'], max_vcpus['count']))
-	filter_properties['ram_info'] = max_ram
-	filter_properties['cpu_info'] = max_vcpus
+        # Check maximum available(total) Memory(ram) and CPUs(vcpus) in
+        # cluster of heterogenous hosts.
+        srv = servicegroup.API()
+        hosts, find_max_in_hosts, no_category_hosts = itertools.tee(hosts, 3)
+        logger.debug('Filter Classes: ' + str(filter_classes) )
+        max_ram = {'count':0}
+        max_vcpus = {'count':0}
+        for host in find_max_in_hosts:
+            service = host.service
+            alive = srv.service_is_up(service)
+            # jump to next host if host not alive or service is disabled
+            if service['disabled'] or not alive:
+                logger.debug('Host: %s \t Status: Not up' % host.nodename)
+                continue
+            else:
+                logger.debug('Host: %s \t Status: Up ' % host.nodename)
+            if host.vcpus_total > max_vcpus['count']:
+                max_vcpus['count'] = float(host.vcpus_total)
+                max_vcpus['nodename'] = host.nodename
+            if host.total_usable_ram_mb > max_ram['count']:
+                max_ram['count'] = float(host.total_usable_ram_mb)
+                max_ram['nodename'] = host.nodename
+        logger.debug('Maximum available Ram in Cluster (%s): %d' % (max_ram['nodename'], max_ram['count']))
+        logger.debug('Maximum available VCPUs in Cluster (%s): %d' % (max_vcpus['nodename'], max_vcpus['count']))
+        filter_properties['ram_info'] = max_ram
+        filter_properties['cpu_info'] = max_vcpus
 
         # Find category of hosts to which VM belongs.
-	filter_properties['instance_type']['category'] = 'CRE'
+        filter_properties['instance_type']['category'] = 'CRE'
         instance_type = filter_properties['instance_type']
         vm_ram_request = instance_type['memory_mb']/max_ram['count']
         vm_vcpus_request = instance_type['vcpus']/max_vcpus['count']
-	filter_properties['ram_info']['request'] = vm_ram_request
-	filter_properties['cpu_info']['request'] = vm_vcpus_request
+        filter_properties['ram_info']['request'] = vm_ram_request
+        filter_properties['cpu_info']['request'] = vm_vcpus_request
         if vm_vcpus_request > vm_ram_request:
-		filter_properties['instance_type']['category'] = 'CGR'
+            filter_properties['instance_type']['category'] = 'CGR'
         elif vm_vcpus_request < vm_ram_request:
-		filter_properties['instance_type']['category'] = 'RGC'
-	logger.debug('Decided category of VM: %s' % filter_properties['instance_type']['category'])
-		
-	# Code by OpenStack - Start
+            filter_properties['instance_type']['category'] = 'RGC'
+        logger.debug('Decided category of VM: %s' % filter_properties['instance_type']['category'])
+
+        # Code by OpenStack - Start
         if ignore_hosts or force_hosts:
             name_to_cls_map = dict([(x.host, x) for x in hosts])
             if ignore_hosts:
@@ -404,111 +404,111 @@ class HostManager(object):
                 if name_to_cls_map:
                     return name_to_cls_map.values()
             hosts = name_to_cls_map.itervalues()
-	# Code by OpenStack - End
+        # Code by OpenStack - End
 
-	# Code to return host when available hosts are 
-	# not similar to VM category.
+        # Code to return host when available hosts are
+        # not similar to VM category.
         hosts = self.filter_handler.get_filtered_objects(filter_classes,
                 hosts, filter_properties)
 
-	# Find alternative host if no host according to VM requirements available.
-	instance_category = filter_properties['instance_type']['category'] 
-	max_resource_host = {'host':'', 'ram_free':0, 'cpu_free':0}
-	if not hosts:
-		CONN_PORT = 9999
-		logger.error('No host available similar to category of VM!')
-		logger.info('Trying to find alternative host to start VM...')
-		for host in no_category_hosts:
+        # Find alternative host if no host according to VM requirements available.
+        instance_category = filter_properties['instance_type']['category']
+        max_resource_host = {'host':'', 'ram_free':0, 'cpu_free':0}
+        if not hosts:
+            CONN_PORT = 9999
+            logger.error('No host available similar to category of VM!')
+            logger.info('Trying to find alternative host to start VM...')
+            for host in no_category_hosts:
 
-			# Reject hosts which are not up.. 
-			service = host.service
-	                check = servicegroup.API()
-       	        	alive = check.service_is_up(service)
-                	if service['disabled'] or not alive:
-                        	continue
+                # Reject hosts which are not up..
+                service = host.service
+                check = servicegroup.API()
+                alive = check.service_is_up(service)
+                if service['disabled'] or not alive:
+                    continue
 
-			host_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                	try:
-                		host_conn.connect((host.nodename, CONN_PORT))
-                        	host_conn.send('usage')
-                        	data = host_conn.recv(1024)
-                        	host_used = json.loads(data)
-                        	host_conn.close()
-                	except socket.error:
-                        	continue
-
-			# Skip host if threshold is up.
-			total_host_ram = host.total_usable_ram_mb
-			host_ram_used_perc = host_used['ram_mb']/(total_host_ram/100)
-                	host_ram_free_perc = 100 - host_ram_used_perc
-                	host_cpu_free_perc = 100 - host_used['cpu_load']
-                	if host_ram_used_perc >= host_used['memory_threshold'] or \
-			   host_used['cpu_load'] >= host_used['cpu_threshold']:
-                        	continue
-
-			# Check available resources in host
-			host_ram_free = host.total_usable_ram_mb - host_used['ram_mb'] 
-			if host_ram_free >= instance_type['memory_mb'] and \
-			   host.vcpus_total >= instance_type['vcpus']:
-				if instance_category == 'CGR':
-					# Assign VM to host whose CPU is maximum free in cluster.
-					if host_cpu_free_perc > max_resource_host['cpu_free']:
-						max_resource_host['host'] = host
-						max_resource_host['cpu_free'] = host_cpu_free_perc
-						max_resource_host['ram_free'] = host_ram_free
-				elif instance_category == 'RGC':
-					# Assign VM to host whose RAM is maximum free in cluster.
-					if host_ram_free > max_resource_host['ram_free']:
-						max_resource_host['host'] = host
-                                                max_resource_host['cpu_free'] = host_cpu_free_perc
-                                                max_resource_host['ram_free'] = host_ram_free			
-				else:
-					if host_ram_free > max_resource_host['ram_free'] and \
-					   host_cpu_free_perc > max_resource_host['cpu_free']:
-						max_resource_host['host'] = host
-                                                max_resource_host['cpu_free'] = host_cpu_free_perc
-                                                max_resource_host['ram_free'] = host_actual_ram_free
-		logger.debug('Assigning VM to ->  %s [CATEGORY_NOT_CORRECT]' % str(max_resource_host))
-		hosts.append(max_resource_host['host'])
-		return hosts
-
-	# Weight hosts to schedule VM to host with maximum available resources.
-	# This will execute when hosts similar to VM's category are available.
-	final_host = []
-	CONN_PORT = 9999
-	for host in hosts:
                 host_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
-                	host_conn.connect((host.nodename, CONN_PORT))
-                       	host_conn.send('usage')
-                       	data = host_conn.recv(1024)
-                       	host_used = json.loads(data)
-                       	host_conn.close()
-               	except socket.error:
-                       	continue
-		host_ram_free = host.total_usable_ram_mb - host_used['ram_mb'] 
-                host_cpu_free_perc = 100 - host_used['cpu_load']
-		if instance_category == 'CGR':
-			if host_cpu_free_perc > max_resource_host['cpu_free']:
-				max_resource_host['host'] = host
-				max_resource_host['cpu_free'] = host_cpu_free_perc
-				max_resource_host['ram_free'] = host_ram_free
-		elif instance_category == 'RGC':
-			if host_ram_free > max_resource_host['ram_free']:
-				max_resource_host['host'] = host
-                                max_resource_host['cpu_free'] = host_cpu_free_perc
-                                max_resource_host['ram_free'] = host_ram_free			
-		else:
-			if host_ram_free > max_resource_host['ram_free'] and \
-			   host_cpu_free_perc > max_resource_host['cpu_free']:
-				max_resource_host['host'] = host
-                                max_resource_host['cpu_free'] = host_cpu_free_perc
-                                max_resource_host['ram_free'] = host_actual_ram_free
-	logger.info('Got host according to requirements of VM.')
-	logger.debug('Assigning VM to -> %s [CORRECT_CATEGORY]' % str(max_resource_host))
-	return [max_resource_host['host']]
+                    host_conn.connect((host.nodename, CONN_PORT))
+                    host_conn.send('usage')
+                    data = host_conn.recv(1024)
+                    host_used = json.loads(data)
+                    host_conn.close()
+                except socket.error:
+                    continue
 
-	# Modifications-Rohit: End
+                # Skip host if threshold is up.
+                total_host_ram = host.total_usable_ram_mb
+                host_ram_used_perc = host_used['ram_mb']/(total_host_ram/100)
+                host_ram_free_perc = 100 - host_ram_used_perc
+                host_cpu_free_perc = 100 - host_used['cpu_load']
+                if host_ram_used_perc >= host_used['memory_threshold'] or \
+                   host_used['cpu_load'] >= host_used['cpu_threshold']:
+                    continue
+
+                # Check available resources in host
+                host_ram_free = host.total_usable_ram_mb - host_used['ram_mb']
+                if host_ram_free >= instance_type['memory_mb'] and \
+                   host.vcpus_total >= instance_type['vcpus']:
+                    if instance_category == 'CGR':
+                        # Assign VM to host whose CPU is maximum free in cluster.
+                        if host_cpu_free_perc > max_resource_host['cpu_free']:
+                            max_resource_host['host'] = host
+                            max_resource_host['cpu_free'] = host_cpu_free_perc
+                            max_resource_host['ram_free'] = host_ram_free
+                    elif instance_category == 'RGC':
+                        # Assign VM to host whose RAM is maximum free in cluster.
+                        if host_ram_free > max_resource_host['ram_free']:
+                            max_resource_host['host'] = host
+                            max_resource_host['cpu_free'] = host_cpu_free_perc
+                            max_resource_host['ram_free'] = host_ram_free
+                    else:
+                        if host_ram_free > max_resource_host['ram_free'] and \
+                           host_cpu_free_perc > max_resource_host['cpu_free']:
+                            max_resource_host['host'] = host
+                            max_resource_host['cpu_free'] = host_cpu_free_perc
+                            max_resource_host['ram_free'] = host_actual_ram_free
+            logger.debug('Assigning VM to ->  %s [CATEGORY_NOT_CORRECT]' % str(max_resource_host))
+            hosts.append(max_resource_host['host'])
+            return hosts
+
+        # Weight hosts to schedule VM to host with maximum available resources.
+        # This will execute when hosts similar to VM's category are available.
+        final_host = []
+        CONN_PORT = 9999
+        for host in hosts:
+            host_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                host_conn.connect((host.nodename, CONN_PORT))
+                host_conn.send('usage')
+                data = host_conn.recv(1024)
+                host_used = json.loads(data)
+                host_conn.close()
+            except socket.error:
+                continue
+            host_ram_free = host.total_usable_ram_mb - host_used['ram_mb']
+            host_cpu_free_perc = 100 - host_used['cpu_load']
+            if instance_category == 'CGR':
+                if host_cpu_free_perc > max_resource_host['cpu_free']:
+                    max_resource_host['host'] = host
+                    max_resource_host['cpu_free'] = host_cpu_free_perc
+                    max_resource_host['ram_free'] = host_ram_free
+            elif instance_category == 'RGC':
+                if host_ram_free > max_resource_host['ram_free']:
+                    max_resource_host['host'] = host
+                    max_resource_host['cpu_free'] = host_cpu_free_perc
+                    max_resource_host['ram_free'] = host_ram_free
+            else:
+                if host_ram_free > max_resource_host['ram_free'] and \
+                   host_cpu_free_perc > max_resource_host['cpu_free']:
+                    max_resource_host['host'] = host
+                    max_resource_host['cpu_free'] = host_cpu_free_perc
+                    max_resource_host['ram_free'] = host_actual_ram_free
+        logger.info('Got host according to requirements of VM.')
+        logger.debug('Assigning VM to -> %s [CORRECT_CATEGORY]' % str(max_resource_host))
+        return [max_resource_host['host']]
+
+        # Modifications-Rohit: End
 
     def get_weighed_hosts(self, hosts, weight_properties):
         """Weigh the hosts."""
