@@ -1,9 +1,9 @@
-# optimus-scheduler-for-openstack
+# Optimus Scheduler for OpenStack
 A scheduler of virtual machines for openstack to optimise utilization of resources in nova-compute nodes.
 
 - Created a filter and made some changes to the default host manager of OpenStack to provide some extra information to filter for host passes.
 
-Scheduling Approach
+# Scheduling Approach
 -------------------
 - The cluster of hosts is divided into 3 categories:
     1. CRE: Hosts in which utilization of cpu and ram is equal.
