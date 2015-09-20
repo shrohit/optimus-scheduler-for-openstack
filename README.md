@@ -2,6 +2,8 @@
 A scheduler of virtual machines for openstack to optimise utilization of resources in nova-compute nodes.
 
 - Created a filter and made some changes to the default host manager of OpenStack to provide some extra information to filter for host passes.
+- Created a script(compute-node-info-provider.py) for providing resource utilization information to scheduler which should be executed as root on compute nodes.
+- Created a resource manager for computer nodes(local-manager-compute-node.py) which performs load prediction and migration of VMs on demand automatically. 
 
 # Scheduling Approach
 -------------------
