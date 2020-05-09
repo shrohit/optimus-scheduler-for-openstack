@@ -1,5 +1,5 @@
 # Optimus Scheduler - OpenStack Havana
-A scheduler for OpenStack to optimize resource utilization in heterogeneous nova-compute nodes.
+A scheduler for OpenStack Havana to optimize resource utilization in heterogeneous nova-compute nodes.
 - Developed a resource manager for compute nodes (local-manager-compute-node.py) which performs:
   1. Node's future load prediction
   2. Making resources available on the node for the predicted future load by performing VMs' live migration
