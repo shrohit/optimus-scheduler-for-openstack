@@ -8,9 +8,9 @@ A scheduler for OpenStack to optimize resource utilization in heterogeneous nova
 
 # Scheduling Algorithm
 - The scheduler divides the OpenStack cluster into 3 host categories:
-  1. CGR: CPU class machines - where CPU is greater than available memory
-  2. RGC: Memory class machines - where available memory is greater than CPU
-  3. CRE: General class machines - where CPU and memory is equal in percentage
+  1. **CGR: CPU class machines** - where CPU is greater than available memory
+  2. **RGC: Memory class machines** - where available memory is greater than CPU
+  3. **CRE: General class machines** - where CPU and memory is equal in percentage
 - When the scheduler starts, it detects the maximum available Memory node and CPU node in the cluster
 - When a new VM creation request is raised, the VM's resource request is compared against the maximum available memory node and maximum available CPU node in the cluster for assigning host-category to the VM
 - According to the category of the VM, the scheduler then searches nodes belonging to the same host-category 
